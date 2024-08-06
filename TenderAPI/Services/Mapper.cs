@@ -1,6 +1,4 @@
 using System.Globalization;
-using Microsoft.Extensions.Caching.Memory;
-using TenderAPI.Enums;
 using TenderAPI.Models;
 using TenderAPI.Response;
 
@@ -14,11 +12,11 @@ public class Mapper : IMapper
     {
         _mapper = mapper;
     }
-    public List<TenderListItem> Map(TenderApiBasicResponseRoot[] awaitedTasks)
+    public List<TenderListItem> Map(TenderApiBasicResponseRoot[] source)
     {
         try
         {
-            var convertedResult = awaitedTasks.SelectMany(x => x.Data).Select(q => new TenderListItem()
+            var convertedResult = source.SelectMany(x => x.Data).Select(q => new TenderListItem()
             {
                 Id = Int32.Parse(q.Id),
                 Date = DateTime.Parse(q.Date),

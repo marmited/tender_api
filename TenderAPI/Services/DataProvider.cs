@@ -81,10 +81,10 @@ public class DataProvider : IDataProvider
     private IEnumerable<TenderListItem> Filter(IEnumerable<TenderListItem> listItems, TenderFilter filter)
     {
         if (filter.FromDate != null)
-            listItems = listItems.Where(x => x.Date >= filter.FromDate);
+            listItems = listItems.Where(x => x.Date >= filter.FromDate.Value.Date);
         
         if (filter.ToDate != null)
-            listItems = listItems.Where(x => x.Date <= filter.ToDate);
+            listItems = listItems.Where(x => x.Date <= filter.ToDate.Value.Date);
 
         if (filter.FromPrice != null)
             listItems = listItems.Where(x => x.Price >= filter.FromPrice);

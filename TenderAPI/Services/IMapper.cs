@@ -5,5 +5,5 @@ namespace TenderAPI.Services;
 
 public interface IMapper
 {
-    List<TenderListItem> Map(TenderApiBasicResponseRoot[] awaitedTasks);
+    List<TenderListItem> Map(TenderApiBasicResponseRoot[] source);
 }

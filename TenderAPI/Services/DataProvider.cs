@@ -9,26 +9,29 @@ public class DataProvider : IDataProvider
     private readonly ICacheManager _memoryCache;
     private readonly IDownloader _downloader;
     private readonly IMapper _mapper;
+    private readonly ITenderFilteringService _filteringService;
     private const string CacheKey = "tenders_key";
 
     public DataProvider (
          ICacheManager memoryCache,
          IDownloader downloader,
-         IMapper mapper
+         IMapper mapper,
+         ITenderFilteringService filteringService
         )
     {
         _memoryCache = memoryCache;
         _downloader = downloader;
         _mapper = mapper;
+        _filteringService = filteringService;
     }
     
     public async Task<TenderWrapper> GetTendersAsync(TenderFilter filter, CancellationToken cancellationToken)
     {
         var data = await GetDataAsync(cancellationToken);
 
-        data = Filter(data, filter).ToList();
+        data = _filteringService.Filter(data, filter).ToList();
         var totalCount = data.Count();
-        data = Order(data, filter).ToList();
+        data = _filteringService.Order(data, filter).ToList();
         
         return new TenderWrapper()
         {
@@ -62,7 +65,6 @@ public class DataProvider : IDataProvider
         return data;
     }
 
-
     private async Task<List<TenderListItem>> DownloadDataAsync(CancellationToken cancellationToken)
     {
         var tasks = new List<Task<TenderApiBasicResponseRoot>>();
@@ -76,43 +78,5 @@ public class DataProvider : IDataProvider
 
         var convertedResult = _mapper.Map(awaitedTasks);
         return convertedResult;
-    }
-
-    private IEnumerable<TenderListItem> Filter(IEnumerable<TenderListItem> listItems, TenderFilter filter)
-    {
-        if (filter.FromDate != null)
-            listItems = listItems.Where(x => x.Date >= filter.FromDate.Value.Date);
-        
-        if (filter.ToDate != null)
-            listItems = listItems.Where(x => x.Date <= filter.ToDate.Value.Date);
-
-        if (filter.FromPrice != null)
-            listItems = listItems.Where(x => x.Price >= filter.FromPrice);
-        
-        if (filter.ToPrice != null)
-            listItems = listItems.Where(x => x.Price <= filter.ToPrice);
-        
-        if (filter.SupplierId != null)
-            listItems = listItems.Where(x => x.Suppliers.Any(q=> q.Id == filter.SupplierId));
-
-        return listItems;
-    }
-    
-    private IEnumerable<TenderListItem> Order(IEnumerable<TenderListItem> listItems, TenderFilter filter)
-    {
-        listItems = filter.SortColumn switch
-        {
-            SortColumn.Date when filter.SortOrder == SortOrder.Dsc => listItems.OrderByDescending(x => x.Date),
-            SortColumn.Date when filter.SortOrder == SortOrder.Asc => listItems.OrderBy(x => x.Date),
-            SortColumn.Price when filter.SortOrder == SortOrder.Dsc => listItems.OrderByDescending(x => x.Price),
-            SortColumn.Price when filter.SortOrder == SortOrder.Asc => listItems.OrderBy(x => x.Price),
-            _ => listItems.OrderBy(x=>x.Id)
-        };
-        
-        listItems = listItems
-            .Skip((filter.PageNumber - 1) * filter.PageSize)
-            .Take(filter.PageSize);
-
-        return listItems;
     }
 }

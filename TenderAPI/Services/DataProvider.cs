@@ -24,14 +24,8 @@ public class DataProvider : IDataProvider
     
     public async Task<TenderWrapper> GetTendersAsync(TenderFilter filter, CancellationToken cancellationToken)
     {
-        (bool success, var data) = _memoryCache.GetData<IEnumerable<TenderListItem>>(CacheKey);
+        var data = await GetDataAsync(cancellationToken);
 
-        if (!success)
-        {
-            data = await GetRawDataAsync(cancellationToken);
-            _memoryCache.SetData(CacheKey, data);
-        }
-        
         data = Filter(data, filter).ToList();
         var totalCount = data.Count();
         data = Order(data, filter).ToList();
@@ -45,8 +39,31 @@ public class DataProvider : IDataProvider
             PageCount = data.Count()
         };
     }
+    
+    public async Task<TenderListItem> GetTenderAsync(int id, CancellationToken cancellationToken)
+    {
+        var data = await GetDataAsync(cancellationToken);
 
-    private async Task<List<TenderListItem>> GetRawDataAsync(CancellationToken cancellationToken)
+        var item = data.FirstOrDefault(x => x.Id == id);
+        
+        return item;
+    }
+
+    private async Task<IEnumerable<TenderListItem>> GetDataAsync(CancellationToken cancellationToken)
+    {
+        (bool success, var data) = _memoryCache.GetData<IEnumerable<TenderListItem>>(CacheKey);
+
+        if (!success)
+        {
+            data = await DownloadDataAsync(cancellationToken);
+            _memoryCache.SetData(CacheKey, data);
+        }
+
+        return data;
+    }
+
+
+    private async Task<List<TenderListItem>> DownloadDataAsync(CancellationToken cancellationToken)
     {
         var tasks = new List<Task<TenderApiBasicResponseRoot>>();
             

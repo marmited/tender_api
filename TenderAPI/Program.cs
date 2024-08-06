@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using TenderAPI;
 using TenderAPI.Models;
 using TenderAPI.Services;
@@ -19,7 +20,6 @@ builder.Services.AddHttpClient<Downloader>()
 
 builder.Services.Configure<CacheOptions>(builder.Configuration.GetSection("CacheOptions"));
 
-//builder.Services.AddHttpClient<IDataProvider, DataProvider>();
 builder.Services.AddMemoryCache();
 builder.Services.AddLogging();
 
@@ -38,6 +38,19 @@ app.MapGet("/tender", async (IDataProvider dataProvider, CancellationToken cance
     {
         var tenders = await dataProvider.GetTendersAsync(filter, cancellationToken);
         return tenders;
+    })
+    .WithName("GetTenders")
+    .WithOpenApi();
+
+app.MapGet("/tender/{id}", async (IDataProvider dataProvider, CancellationToken cancellationToken, int id) =>
+    {
+        var tender = await dataProvider.GetTenderAsync(id, cancellationToken);
+
+        if (tender is null)
+        {
+            return Results.NotFound();
+        }
+        return Results.Ok(tender);
     })
     .WithName("GetTender")
     .WithOpenApi();

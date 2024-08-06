@@ -12,6 +12,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IDownloader, Downloader>();
 builder.Services.AddScoped<IDataProvider, DataProvider>();
+builder.Services.AddScoped<ITenderFilteringService, TenderFilteringService>();
 builder.Services.AddScoped<IMapper, Mapper>();
 builder.Services.AddScoped<ICacheManager, CacheManager>();
 

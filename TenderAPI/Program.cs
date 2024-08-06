@@ -32,6 +32,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRequestLocalization("en-US");
 app.UseHttpsRedirection();
 
 app.MapGet("/tender", async (IDataProvider dataProvider, CancellationToken cancellationToken, [AsParameters]TenderFilter filter) =>

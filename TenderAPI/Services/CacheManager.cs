@@ -23,13 +23,13 @@ public class CacheManager : ICacheManager
 
     public (bool success, T data) GetData<T>(string key) where T: class
     {
-        bool success = _memoryCache.TryGetValue<IEnumerable<TenderListItem>>(key, out var data);
+        bool success = _memoryCache.TryGetValue(key, out var data);
         
         try
         {
             if (data != null)
             {
-                T result = (T)data;
+                var result = (T)data;
                 return (success, result);
             }
         }
